@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="resolver-url" content="">
+<title>دانلودر رادیو جوان</title>
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; background: #101521; color: #eef2fb; font: 16px/1.8 "Segoe UI", Tahoma, sans-serif }
+  main { max-width: 660px; margin: 8vh auto; padding: 24px }
+  form, section { background: #1a2333; border: 1px solid #344159; border-radius: 16px; padding: 20px; margin-block: 14px }
+  h1 { font-size: clamp(24px, 5vw, 36px); margin: 0 }
+  h1 img { width: 34px; height: 34px; object-fit: contain; vertical-align: middle; margin-inline-end: 8px }
+  footer { text-align: center; color: #f7c55d }
+  #recommended { margin-top: 14px; border-top: 1px solid #344159; padding-top: 8px }
+  #download, #download-high, #copy-high { margin-top: 10px }
+  label { display: block; margin-block: 8px }
+  input, select, button { font: inherit; border-radius: 8px; padding: 8px 12px }
+  input { width: 100%; background: #101521; color: inherit; border: 1px solid #596984 }
+  select { background: #101521; color: inherit; border: 1px solid #596984 }
+  button { border: 0; background: #9ef1d6; color: #10231d; cursor: pointer; font-weight: 600 }
+  button:disabled { opacity: .55; cursor: default }
+  .actions { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 12px }
+  #copy { margin-top: 12px }
+  #status { color: #cbd6eb }
+</style>
+<main>
+  <h1><img src="./rj-logo.png" alt="">دانلودر رادیو جوان</h1>
+  <form id="lookup">
+    <label for="input">لینک پخش آهنگ یا پادکست</label>
+    <input id="input" dir="ltr" type="url" required placeholder="https://play.radiojavan.com/podcast/…">
+    <div class="actions">
+      <div><label for="quality">کیفیت</label>
+        <select id="quality"><option value="default">پیش‌فرض</option><option>128</option><option>256</option></select>
+      </div>
+      <button id="find">پیدا کردن لینک</button>
+    </div>
+  </form>
+  <section id="result" hidden>
+    <label for="output">آدرس فایل صوتی</label>
+    <input id="output" dir="ltr" readonly>
+    <button id="copy" type="button">کپی لینک</button>
+    <button id="download" type="button">دانلود</button>
+    <div id="recommended" hidden>
+      <label for="high">کیفیت بالاتر · پیشنهادی</label>
+      <input id="high" dir="ltr" readonly>
+      <button id="download-high" type="button">دانلود</button>
+      <button id="copy-high" type="button">کپی لینک</button>
+    </div>
+  </section>
+  <p id="status" role="status"></p>
+  <footer>سازنده <b>vahidzigma</b></footer>
+</main>
+<script type="module" src="./app.mjs"></script>
