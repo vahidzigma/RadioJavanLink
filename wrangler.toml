@@ -1,0 +1,8 @@
+name = "radio-javan-link"
+main = "worker.mjs"
+compatibility_date = "2026-11-14"
+
+[assets]
+directory = "./web"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
