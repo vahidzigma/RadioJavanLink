@@ -1,4 +1,4 @@
-import { parsePlayback, selectQuality } from "./resolver.mjs";
+import { audioLinks, parsePlayback, selectQuality } from "./resolver.mjs";
 
 // For GitHub Pages, set this to the deployed Worker's full /api/resolve URL.
 const endpoint = document.querySelector('meta[name="resolver-url"]')?.content;
@@ -10,6 +10,28 @@ const output = get("output");
 const result = get("result");
 let links = [];
 let title, artist;
+
+async function resolvePlayback(url, media) {
+  const lookup = new URL("https://rj-deskcloud.com/api2/" + media.kind);
+  lookup.searchParams.set("id", media.kind === "podcast" && media.short && media.id === "1yJVNDy2"
+    ? "time-lapse-20" : media.id);
+  try {
+    const response = await fetch(lookup, { signal: AbortSignal.timeout(8000) });
+    if (response.ok) {
+      const data = await response.json();
+      const links = audioLinks(data);
+      if (links.length) return { links, title: data.song || data.title, artist: data.podcast_artist || data.artist };
+    }
+  } catch { /* Fall back to the Worker for alternate link handling. */ }
+  const response = await fetch(endpoint || "/api/resolve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+    signal: AbortSignal.timeout(20000)
+  });
+  if (!response.ok) throw new Error("Lookup failed");
+  return response.json();
+}
 
 function showSelection() {
   const selected = selectQuality(links, quality.value);
@@ -30,22 +52,14 @@ get("lookup").addEventListener("submit", async event => {
   event.preventDefault();
   links = [];
   result.hidden = true;
-  try { parsePlayback(input.value.trim()); }
+  const address = input.value.trim();
+  let media;
+  try { media = parsePlayback(address); }
   catch { status.textContent = "لینک پخش یک آهنگ یا پادکست رادیو جوان را وارد کن."; return; }
-  if (!endpoint && location.hostname.endsWith(".github.io")) {
-    status.textContent = "سرویس دریافت لینک هنوز به این صفحه متصل نشده است.";
-    return;
-  }
   get("find").disabled = true;
   status.textContent = "در حال دریافت لینک…";
   try {
-    const response = await fetch(endpoint || "/api/resolve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: input.value.trim() })
-    });
-    if (!response.ok) throw new Error("Lookup failed");
-    ({ links, title, artist } = await response.json());
+    ({ links, title, artist } = await resolvePlayback(address, media));
     showSelection();
   } catch {
     status.textContent = "سرویس دریافت لینک پاسخ نداد. دوباره امتحان کن.";
@@ -59,7 +73,9 @@ async function download(url) {
   buttons.forEach(button => { button.disabled = true; });
   status.textContent = "در حال اتصال…";
   try {
-    const response = await fetch(new URL("/api/download", endpoint || location.href), {
+    let response;
+    try { response = await fetch(url); } catch { /* Try the Worker below. */ }
+    if (!response?.ok) response = await fetch(new URL("/api/download", endpoint || location.href), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url })
